@@ -48,6 +48,13 @@ builds/               # Local build output; should not be committed
 - Normalize scale, origins, naming, and collision conventions before importing assets into Godot.
 - Treat AI-generated 3D assets as drafts that may need cleanup.
 - Optimize assets for Android later, but keep mobile constraints in mind from the start.
+- Blender is expected to be available on `PATH` as `blender`.
+- Check Blender availability with `blender --version`.
+- Run Blender automation in background mode, for example: `blender --background --python tools/blender/create_basic_human.py`.
+- Open a source asset in the Blender UI with a command such as `blender assets_src/characters/basic_human.blend`, or by opening the `.blend` file directly.
+- Keep Blender automation scripts in `tools/blender/`.
+- Do not commit Blender local backup files such as `.blend1`, `.blend2`, or similar numbered backups.
+- Prefer regenerating `.glb` files from `.blend` sources and scripts instead of hand-editing exported runtime files.
 
 ## Build And Validation
 
