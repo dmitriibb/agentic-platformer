@@ -1,0 +1,16 @@
+# Godot local cache and generated state
+.godot/
+
+# Build outputs
+builds/
+
+# Local logs and temp files
+*.tmp
+*.log
+
+# OS/editor noise
+Thumbs.db
+.DS_Store
+
+# Local export credentials should never be committed
+export_credentials.cfg
