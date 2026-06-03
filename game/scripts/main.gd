@@ -1,6 +1,7 @@
 extends Node
 
 const PLAYER_SCRIPT := preload("res://scripts/player_controller.gd")
+const HUMAN_SCENE_PATH := "res://assets_export/characters/basic_human.glb"
 
 var menu_layer: CanvasLayer
 var start_button: Button
@@ -152,25 +153,48 @@ func _create_box(node_name: String, box_position: Vector3, box_size: Vector3, co
 
 func _add_player() -> void:
 	var player := CharacterBody3D.new()
-	player.name = "PlayerCube"
-	player.position = Vector3(0, 0.6, 0)
+	player.name = "Player"
+	player.position = Vector3(0, 0.02, 0)
 	player.set_script(PLAYER_SCRIPT)
-	game_world.add_child(player)
 
-	var mesh_instance := MeshInstance3D.new()
-	mesh_instance.name = "Visual"
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3.ONE
-	mesh_instance.mesh = mesh
-	mesh_instance.material_override = _make_material(Color(0.95, 0.68, 0.22))
-	player.add_child(mesh_instance)
+	var visual := Node3D.new()
+	visual.name = "Visual"
+	visual.rotation.y = PI / 2.0
+	visual.scale = Vector3.ONE * 0.9
+	player.add_child(visual)
+
+	var human_scene: PackedScene
+	if ResourceLoader.exists(HUMAN_SCENE_PATH, "PackedScene"):
+		human_scene = ResourceLoader.load(HUMAN_SCENE_PATH, "PackedScene") as PackedScene
+
+	if human_scene != null:
+		var human: Node = human_scene.instantiate()
+		human.name = "BasicHuman"
+		visual.add_child(human)
+	else:
+		_add_fallback_player_visual(visual)
 
 	var collision := CollisionShape3D.new()
 	collision.name = "Collision"
-	var shape := BoxShape3D.new()
-	shape.size = Vector3.ONE
+	collision.position = Vector3(0, 1.1, 0)
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.32
+	shape.height = 2.2
 	collision.shape = shape
 	player.add_child(collision)
+
+	game_world.add_child(player)
+
+
+func _add_fallback_player_visual(parent: Node3D) -> void:
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "FallbackVisual"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.75, 1.8, 0.45)
+	mesh_instance.position = Vector3(0, 1.0, 0)
+	mesh_instance.mesh = mesh
+	mesh_instance.material_override = _make_material(Color(0.95, 0.68, 0.22))
+	parent.add_child(mesh_instance)
 
 
 func _add_camera() -> void:
