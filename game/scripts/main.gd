@@ -1,7 +1,7 @@
 extends Node
 
-const PLAYER_SCRIPT := preload("res://scripts/player_controller.gd")
-const HUMAN_SCENE_PATH := "res://assets_export/characters/basic_human.glb"
+const LEVEL_BUILDER_SCRIPT := preload("res://scripts/level_builder.gd")
+const LEVEL_PATH := "res://levels/prototype_room.json"
 
 var menu_layer: CanvasLayer
 var start_button: Button
@@ -97,120 +97,8 @@ func _build_game_world() -> void:
 	game_world.visible = false
 	add_child(game_world)
 
-	_add_lighting()
-	_add_room()
-	_add_player()
-	_add_camera()
-
-
-func _add_lighting() -> void:
-	var sun := DirectionalLight3D.new()
-	sun.name = "Sun"
-	sun.rotation_degrees = Vector3(-50, -35, 0)
-	sun.light_energy = 2.2
-	game_world.add_child(sun)
-
-	var ambient := WorldEnvironment.new()
-	ambient.name = "WorldEnvironment"
-	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.08, 0.09, 0.11)
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.38, 0.42, 0.48)
-	environment.ambient_light_energy = 0.7
-	ambient.environment = environment
-	game_world.add_child(ambient)
-
-
-func _add_room() -> void:
-	_create_box("Floor", Vector3(0, -0.25, 0), Vector3(14, 0.5, 6), Color(0.22, 0.24, 0.25))
-	_create_box("BackWall", Vector3(0, 1.5, -3.25), Vector3(14, 3, 0.5), Color(0.15, 0.16, 0.18))
-	_create_box("LeftWall", Vector3(-7.25, 1.5, 0), Vector3(0.5, 3, 6), Color(0.12, 0.13, 0.15))
-	_create_box("RightWall", Vector3(7.25, 1.5, 0), Vector3(0.5, 3, 6), Color(0.12, 0.13, 0.15))
-
-
-func _create_box(node_name: String, box_position: Vector3, box_size: Vector3, color: Color) -> StaticBody3D:
-	var body := StaticBody3D.new()
-	body.name = node_name
-	body.position = box_position
-	game_world.add_child(body)
-
-	var mesh_instance := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = box_size
-	mesh_instance.mesh = mesh
-	mesh_instance.material_override = _make_material(color)
-	body.add_child(mesh_instance)
-
-	var collision := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = box_size
-	collision.shape = shape
-	body.add_child(collision)
-
-	return body
-
-
-func _add_player() -> void:
-	var player := CharacterBody3D.new()
-	player.name = "Player"
-	player.position = Vector3(0, 0.02, 0)
-	player.set_script(PLAYER_SCRIPT)
-
-	var visual := Node3D.new()
-	visual.name = "Visual"
-	visual.rotation.y = PI / 2.0
-	visual.scale = Vector3.ONE * 0.9
-	player.add_child(visual)
-
-	var human_scene: PackedScene
-	if ResourceLoader.exists(HUMAN_SCENE_PATH, "PackedScene"):
-		human_scene = ResourceLoader.load(HUMAN_SCENE_PATH, "PackedScene") as PackedScene
-
-	if human_scene != null:
-		var human: Node = human_scene.instantiate()
-		human.name = "BasicHuman"
-		visual.add_child(human)
-	else:
-		_add_fallback_player_visual(visual)
-
-	var collision := CollisionShape3D.new()
-	collision.name = "Collision"
-	collision.position = Vector3(0, 1.1, 0)
-	var shape := CapsuleShape3D.new()
-	shape.radius = 0.32
-	shape.height = 2.2
-	collision.shape = shape
-	player.add_child(collision)
-
-	game_world.add_child(player)
-
-
-func _add_fallback_player_visual(parent: Node3D) -> void:
-	var mesh_instance := MeshInstance3D.new()
-	mesh_instance.name = "FallbackVisual"
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.75, 1.8, 0.45)
-	mesh_instance.position = Vector3(0, 1.0, 0)
-	mesh_instance.mesh = mesh
-	mesh_instance.material_override = _make_material(Color(0.95, 0.68, 0.22))
-	parent.add_child(mesh_instance)
-
-
-func _add_camera() -> void:
-	var camera := Camera3D.new()
-	camera.name = "Camera3D"
-	camera.position = Vector3(0, 5.4, 10)
-	camera.current = true
-	game_world.add_child(camera)
-	camera.look_at(Vector3(0, 0.9, 0), Vector3.UP)
-
-
-func _make_material(color: Color) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 0.78
-	return material
+	var level_builder := LEVEL_BUILDER_SCRIPT.new()
+	level_builder.build_from_file(LEVEL_PATH, game_world)
 
 
 func _show_menu() -> void:

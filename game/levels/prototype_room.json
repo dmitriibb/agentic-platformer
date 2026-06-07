@@ -1,0 +1,124 @@
+{
+  "name": "PrototypeRoom",
+  "environment": {
+    "background_color": [0.08, 0.09, 0.11, 1.0],
+    "ambient_light_color": [0.38, 0.42, 0.48, 1.0],
+    "ambient_light_energy": 0.7
+  },
+  "lights": [
+    {
+      "type": "directional",
+      "name": "Sun",
+      "rotation_degrees": [-50.0, -35.0, 0.0],
+      "energy": 2.2
+    }
+  ],
+  "player": {
+    "name": "Player",
+    "position": [-10.5, 0.02, 0.0],
+    "script": "res://scripts/player_controller.gd",
+    "controller": {
+      "move_speed": 6.6,
+      "jump_velocity": 8.5,
+      "gravity": 22.0,
+      "max_air_jumps": 1,
+      "min_x": -13.45,
+      "max_x": 13.45
+    },
+    "visual": {
+      "container_name": "Visual",
+      "scene": "res://assets_export/characters/basic_human.glb",
+      "instance_name": "BasicHuman",
+      "rotation_degrees": [0.0, 90.0, 0.0],
+      "scale": [0.9, 0.9, 0.9],
+      "fallback_color": [0.95, 0.68, 0.22, 1.0]
+    },
+    "collision": {
+      "type": "capsule",
+      "name": "Collision",
+      "position": [0.0, 1.1, 0.0],
+      "radius": 0.32,
+      "height": 2.2
+    }
+  },
+  "camera": {
+    "name": "Camera3D",
+    "position": [0.0, 7.2, 15.5],
+    "look_at": [0.0, 1.8, 0.0],
+    "current": true
+  },
+  "objects": [
+    {
+      "type": "box",
+      "name": "Floor",
+      "position": [0.0, -0.25, 0.0],
+      "size": [28.0, 0.5, 6.0],
+      "color": [0.22, 0.24, 0.25, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "BackWall",
+      "position": [0.0, 2.25, -3.25],
+      "size": [28.0, 4.5, 0.5],
+      "color": [0.15, 0.16, 0.18, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "LeftWall",
+      "position": [-14.25, 2.25, 0.0],
+      "size": [0.5, 4.5, 6.0],
+      "color": [0.12, 0.13, 0.15, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "RightWall",
+      "position": [14.25, 2.25, 0.0],
+      "size": [0.5, 4.5, 6.0],
+      "color": [0.12, 0.13, 0.15, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "LowPlatformLeft",
+      "position": [-6.8, 1.05, 0.0],
+      "size": [3.2, 0.35, 2.4],
+      "color": [0.32, 0.36, 0.38, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "MidPlatformCenter",
+      "position": [-2.0, 2.0, 0.0],
+      "size": [2.8, 0.35, 2.2],
+      "color": [0.28, 0.42, 0.48, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "HighPlatformRight",
+      "position": [3.2, 3.05, 0.0],
+      "size": [3.0, 0.35, 2.2],
+      "color": [0.42, 0.38, 0.28, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "FarRightPlatform",
+      "position": [8.6, 2.0, 0.0],
+      "size": [3.4, 0.35, 2.4],
+      "color": [0.30, 0.34, 0.46, 1.0],
+      "collision": true
+    },
+    {
+      "type": "box",
+      "name": "LandingBlock",
+      "position": [11.6, 0.75, 0.0],
+      "size": [2.8, 1.0, 2.4],
+      "color": [0.12, 0.13, 0.15, 1.0],
+      "collision": true
+    }
+  ]
+}

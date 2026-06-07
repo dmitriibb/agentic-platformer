@@ -3,12 +3,16 @@ extends CharacterBody3D
 @export var move_speed := 6.0
 @export var jump_velocity := 8.0
 @export var gravity := 22.0
+@export var max_air_jumps := 1
+@export var min_x := -6.45
+@export var max_x := 6.45
 @export var movement_plane_z := 0.0
 @export var visual_path: NodePath = ^"Visual"
 @export var idle_animation_name := &"Human_Idle"
 @export var walk_animation_name := &"Human_Walk"
 
 var was_jump_pressed := false
+var air_jumps_remaining := 0
 var _visual: Node3D
 var _animation_player: AnimationPlayer
 var _idle_animation: StringName = &""
@@ -38,18 +42,27 @@ func _physics_process(delta: float) -> void:
 	velocity.z = 0.0
 	_update_facing(input_x)
 
+	var jump_pressed := Input.is_key_pressed(KEY_SPACE)
 	if is_on_floor():
-		var jump_pressed := Input.is_key_pressed(KEY_SPACE)
-		if jump_pressed and not was_jump_pressed:
-			velocity.y = jump_velocity
-		was_jump_pressed = jump_pressed
+		air_jumps_remaining = max_air_jumps
 	else:
 		velocity.y -= gravity * delta
-		was_jump_pressed = Input.is_key_pressed(KEY_SPACE)
+
+	if jump_pressed and not was_jump_pressed:
+		if is_on_floor():
+			velocity.y = jump_velocity
+		elif air_jumps_remaining > 0:
+			velocity.y = jump_velocity
+			air_jumps_remaining -= 1
+
+	was_jump_pressed = jump_pressed
 
 	move_and_slide()
 
-	global_position.x = clampf(global_position.x, -6.45, 6.45)
+	if is_on_floor():
+		air_jumps_remaining = max_air_jumps
+
+	global_position.x = clampf(global_position.x, min_x, max_x)
 	global_position.z = movement_plane_z
 	_play_locomotion_animation(absf(input_x) > 0.01 and is_on_floor())
 

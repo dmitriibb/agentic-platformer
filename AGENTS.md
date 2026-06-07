@@ -35,7 +35,10 @@ builds/               # Local build output; should not be committed
 
 ## Level Pipeline
 
-- Prefer data-driven level definitions in `levels/`.
+- Current runtime-loaded level definitions live in `game/levels/` as JSON files loaded with `res://levels/...`.
+- Build levels declaratively in JSON and let `game/scripts/level_builder.gd` create Godot nodes at runtime.
+- Read `docs/level-building.md` before creating new levels or extending the level JSON schema.
+- Do not reintroduce hardcoded room geometry into `game/scripts/main.gd`; it should select a level and delegate building.
 - Use a clear text format such as JSON for gameplay-critical layout data.
 - Generate Godot scenes from level data instead of burying all gameplay structure in manually edited scene files.
 - Add validators for jump distances, reachable checkpoints, spawn safety, missing collisions, and missing camera zones.
@@ -67,6 +70,9 @@ builds/               # Local build output; should not be committed
   - `tools/blender-export-assets.ps1`
 - Use Godot command-line export once export presets exist.
 - Run validation before large content changes.
+- In Codex, run Godot outside the Codex filesystem sandbox. Sandboxed Godot runs crash with a Windows access-violation dialog like "The memory could not be read."
+- Use the normal Windows Godot executable for validation, for example: `C:\programms\godot\godot.bat --headless --path game --quit`.
+- When running Godot from Codex tools, request escalated/normal execution for `C:\programms\godot\godot.bat`; do not debug sandbox-only Godot crashes as project bugs.
 
 ## Version Control
 

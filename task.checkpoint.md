@@ -12,3 +12,16 @@
 - Removed visible joint marker pieces so limbs no longer appear as detached yellow pivots during walking.
 - Flipped player visual yaw so moving right faces right and moving left faces left.
 - Confirmed Godot imports `Human_Idle`, `Human_Walk`, a 13-bone skeleton, and 17 skinned mesh instances.
+
+## Checkpoint 3
+- Added `game/levels/prototype_room.json` as the declarative source for the current room.
+- Added `game/scripts/level_builder.gd` to build environment, lights, boxes, player, collision, visual, and camera from JSON.
+- Refactored `game/scripts/main.gd` so world setup delegates to the level builder.
+- Confirmed `main.tscn` runs headlessly with the JSON-backed level.
+
+## Checkpoint 4
+- Expanded `prototype_room.json` into a wider platformer-style room.
+- Added several elevated box platforms and a landing block through declarative level data.
+- Added `player.controller` tuning support in `level_builder.gd`.
+- Added one extra airborne jump plus JSON-configurable player horizontal bounds.
+- Confirmed `main.tscn` runs headlessly after the platforming changes.
