@@ -17,6 +17,7 @@ PREVIEW_OUTPUT = ROOT / "assets_export" / "characters" / "basic_human_preview.pn
 FPS = 30
 WALK_ANIMATION = "Human_Walk"
 IDLE_ANIMATION = "Human_Idle"
+SWORD_ATTACK_ANIMATION = "Human_Sword_Attack"
 
 
 def clear_scene() -> None:
@@ -147,8 +148,10 @@ def create_armature() -> bpy.types.Object:
 
     add_bone(armature, "UpperArm_L", (-0.39, 0.0, 1.75), (-0.72, 0.0, 1.40), "Spine")
     add_bone(armature, "Forearm_L", (-0.72, 0.0, 1.40), (-0.92, 0.0, 0.96), "UpperArm_L", True)
+    add_bone(armature, "Hand_L", (-0.92, 0.0, 0.96), (-1.02, -0.01, 0.84), "Forearm_L", True)
     add_bone(armature, "UpperArm_R", (0.39, 0.0, 1.75), (0.72, 0.0, 1.40), "Spine")
     add_bone(armature, "Forearm_R", (0.72, 0.0, 1.40), (0.92, 0.0, 0.96), "UpperArm_R", True)
+    add_bone(armature, "Hand_R", (0.92, 0.0, 0.96), (1.02, -0.01, 0.84), "Forearm_R", True)
 
     add_bone(armature, "UpperLeg_L", (-0.20, 0.0, 0.96), (-0.24, 0.0, 0.50), "Pelvis")
     add_bone(armature, "LowerLeg_L", (-0.24, 0.0, 0.50), (-0.24, 0.0, 0.10), "UpperLeg_L", True)
@@ -318,8 +321,96 @@ def create_animation_clips(armature: bpy.types.Object) -> None:
         (61, {"Spine": (0.0, 0.0, 0.0), "Head": (0.0, 0.0, 0.0), "UpperArm_L": (2.0, 0.0, 0.0), "UpperArm_R": (2.0, 0.0, 0.0)}),
     ]
 
+    sword_attack_frames = [
+        (
+            1,
+            {
+                "Spine": (0.0, 0.0, -1.0),
+                "Head": (0.0, 0.0, 1.0),
+                "UpperArm_L": (7.0, 0.0, 8.0),
+                "Forearm_L": (-10.0, 0.0, 2.0),
+                "UpperArm_R": (-24.0, -6.0, -8.0),
+                "Forearm_R": (-24.0, 0.0, -4.0),
+                "Hand_R": (0.0, 0.0, 0.0),
+                "UpperLeg_L": (2.0, 0.0, 2.0),
+                "UpperLeg_R": (-3.0, 0.0, -2.0),
+            },
+        ),
+        (
+            7,
+            {
+                "Spine": (-2.0, 0.0, -5.0),
+                "Head": (1.0, 0.0, 4.0),
+                "UpperArm_L": (12.0, 0.0, 12.0),
+                "Forearm_L": (-15.0, 0.0, 3.0),
+                "UpperArm_R": (-58.0, -12.0, -18.0),
+                "Forearm_R": (-52.0, 0.0, -8.0),
+                "Hand_R": (-10.0, 0.0, -4.0),
+                "UpperLeg_L": (5.0, 0.0, 3.0),
+                "UpperLeg_R": (-7.0, 0.0, -2.0),
+            },
+        ),
+        (
+            13,
+            {
+                "Spine": (-5.0, 0.0, -2.0),
+                "Head": (2.0, 0.0, 1.0),
+                "UpperArm_L": (10.0, 0.0, 6.0),
+                "Forearm_L": (-18.0, 0.0, 4.0),
+                "UpperArm_R": (108.0, 7.0, 6.0),
+                "Forearm_R": (-86.0, 0.0, 8.0),
+                "Hand_R": (-18.0, 0.0, 10.0),
+                "UpperLeg_L": (-3.0, 0.0, -2.0),
+                "UpperLeg_R": (5.0, 0.0, 2.0),
+            },
+        ),
+        (
+            18,
+            {
+                "Spine": (8.0, 0.0, 7.0),
+                "Head": (-3.0, 0.0, -4.0),
+                "UpperArm_L": (-3.0, 0.0, -10.0),
+                "Forearm_L": (-10.0, 0.0, -4.0),
+                "UpperArm_R": (48.0, 4.0, 16.0),
+                "Forearm_R": (-34.0, 0.0, 8.0),
+                "Hand_R": (8.0, 0.0, -4.0),
+                "UpperLeg_L": (-9.0, 0.0, -4.0),
+                "UpperLeg_R": (12.0, 0.0, 3.0),
+            },
+        ),
+        (
+            23,
+            {
+                "Spine": (10.0, 0.0, 4.0),
+                "Head": (-3.0, 0.0, -3.0),
+                "UpperArm_L": (-2.0, 0.0, -6.0),
+                "Forearm_L": (-9.0, 0.0, -3.0),
+                "UpperArm_R": (18.0, 0.0, 22.0),
+                "Forearm_R": (-12.0, 0.0, 4.0),
+                "Hand_R": (3.0, 0.0, -8.0),
+                "UpperLeg_L": (-8.0, 0.0, -3.0),
+                "UpperLeg_R": (10.0, 0.0, 2.0),
+            },
+        ),
+        (
+            30,
+            {
+                "Spine": (0.0, 0.0, 0.0),
+                "Head": (0.0, 0.0, 0.0),
+                "UpperArm_L": (2.0, 0.0, 0.0),
+                "Forearm_L": (0.0, 0.0, 0.0),
+                "UpperArm_R": (2.0, 0.0, 0.0),
+                "Forearm_R": (0.0, 0.0, 0.0),
+                "Hand_R": (0.0, 0.0, 0.0),
+                "UpperLeg_L": (0.0, 0.0, 0.0),
+                "UpperLeg_R": (0.0, 0.0, 0.0),
+            },
+        ),
+    ]
+
     add_pose_clip(armature, WALK_ANIMATION, walk_frames)
     add_pose_clip(armature, IDLE_ANIMATION, idle_frames)
+    add_pose_clip(armature, SWORD_ATTACK_ANIMATION, sword_attack_frames)
 
 
 def create_model() -> None:
@@ -330,6 +421,9 @@ def create_model() -> None:
     pants = material("Dark work pants", (0.11, 0.13, 0.17, 1.0))
     shoes = material("Graphite shoes", (0.035, 0.04, 0.045, 1.0))
     eye_mat = material("Simple eyes", (0.02, 0.025, 0.03, 1.0))
+    sword_steel = material("Held sword steel", (0.72, 0.78, 0.84, 1.0))
+    sword_guard = material("Held sword brass", (0.86, 0.58, 0.18, 1.0))
+    sword_grip = material("Held sword grip", (0.08, 0.045, 0.028, 1.0))
 
     armature = create_armature()
 
@@ -341,10 +435,15 @@ def create_model() -> None:
         (create_sphere("Eye_R", (0.11, -0.36, 2.28), 0.035, eye_mat, (1.0, 0.45, 1.0)), "Head"),
         (create_limb_segment("Arm_L_Upper", (-0.39, 0.0, 1.75), (-0.72, 0.0, 1.40), 0.105, skin), "UpperArm_L"),
         (create_limb_segment("Arm_L_Lower", (-0.72, 0.0, 1.40), (-0.92, 0.0, 0.96), 0.095, skin), "Forearm_L"),
-        (create_sphere("Hand_L", (-0.94, -0.01, 0.88), 0.105, skin), "Forearm_L"),
+        (create_sphere("Hand_L", (-0.94, -0.01, 0.88), 0.105, skin), "Hand_L"),
         (create_limb_segment("Arm_R_Upper", (0.39, 0.0, 1.75), (0.72, 0.0, 1.40), 0.105, skin), "UpperArm_R"),
         (create_limb_segment("Arm_R_Lower", (0.72, 0.0, 1.40), (0.92, 0.0, 0.96), 0.095, skin), "Forearm_R"),
-        (create_sphere("Hand_R", (0.94, -0.01, 0.88), 0.105, skin), "Forearm_R"),
+        (create_sphere("Hand_R", (0.94, -0.01, 0.88), 0.105, skin), "Hand_R"),
+        (create_cube("HeldSword_Blade", (0.94, -0.78, 0.88), (0.12, 1.12, 0.055), sword_steel, 0.008), "Hand_R"),
+        (create_cube("HeldSword_Tip", (0.94, -1.40, 0.88), (0.15, 0.22, 0.06), sword_steel, 0.008), "Hand_R"),
+        (create_cube("HeldSword_Guard", (0.94, -0.16, 0.88), (0.52, 0.075, 0.075), sword_guard, 0.016), "Hand_R"),
+        (create_cube("HeldSword_Grip", (0.94, 0.08, 0.88), (0.075, 0.38, 0.075), sword_grip, 0.012), "Hand_R"),
+        (create_sphere("HeldSword_Pommel", (0.94, 0.34, 0.88), 0.105, sword_steel, (1.0, 1.0, 0.8)), "Hand_R"),
         (create_limb_segment("Leg_L_Upper", (-0.20, 0.0, 0.96), (-0.24, 0.0, 0.50), 0.125, pants), "UpperLeg_L"),
         (create_limb_segment("Leg_L_Lower", (-0.24, 0.0, 0.50), (-0.24, 0.0, 0.10), 0.11, pants), "LowerLeg_L"),
         (create_cube("Foot_L", (-0.24, -0.15, 0.055), (0.24, 0.44, 0.09), shoes, 0.025), "Foot_L"),

@@ -25,3 +25,24 @@
 - Added `player.controller` tuning support in `level_builder.gd`.
 - Added one extra airborne jump plus JSON-configurable player horizontal bounds.
 - Confirmed `main.tscn` runs headlessly after the platforming changes.
+
+## Checkpoint 5
+- Added a `Human_Sword_Attack` clip to the Blender human source and regenerated the character GLBs.
+- Wired player melee to play the sword attack clip without locomotion overriding it.
+- Added a longer windup, slash, follow-through, and recovery timeline for player body and sword visuals.
+- Delayed melee damage until the slash window while preserving a shorter active hit window.
+- Updated the combat smoke test to verify the imported attack clip and delayed melee damage.
+
+## Checkpoint 6
+- Added left and right hand bones to the generated human armature.
+- Moved the player sword into the skinned character model and weighted it to `Hand_R`.
+- Disabled the player hitbox's separate sword visual so the visible blade no longer floats independently.
+- Softened root-level melee motion to a subtle weight shift instead of rotating the whole player.
+- Retuned melee duration, cooldown, and damage delay for a more readable slash.
+
+## Checkpoint 7
+- Reoriented the held sword so the blade points forward from the right-hand grip instead of sideways across the character.
+- Revised `Human_Sword_Attack` into an overhead descending cut: ready, lift, high guard, downward chop, follow-through, recovery.
+- Added right-hand rotation keys so the blade follows the palm through the swing.
+- Regenerated and reimported the character GLB after the sword orientation and animation changes.
+- Confirmed the combat smoke test still passes with the rigged sword mesh and delayed melee damage.

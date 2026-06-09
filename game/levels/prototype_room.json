@@ -23,7 +23,20 @@
       "gravity": 22.0,
       "max_air_jumps": 1,
       "min_x": -13.45,
-      "max_x": 13.45
+      "max_x": 13.45,
+      "melee_attack_damage": 25.0,
+      "melee_attack_range": 1.45,
+      "melee_attack_offset": 0.95,
+      "melee_attack_cooldown": 0.64,
+      "melee_attack_active_time": 0.16,
+      "melee_attack_duration": 0.62,
+      "melee_attack_damage_delay": 0.32,
+      "ranged_attack_damage": 16.0,
+      "ranged_attack_cooldown": 0.55,
+      "ranged_projectile_speed": 12.0,
+      "ranged_projectile_lifetime": 1.7,
+      "ranged_projectile_radius": 0.22,
+      "attack_height": 1.1
     },
     "visual": {
       "container_name": "Visual",
@@ -39,6 +52,14 @@
       "position": [0.0, 1.1, 0.0],
       "radius": 0.32,
       "height": 2.2
+    },
+    "health": {
+      "max": 100.0,
+      "bar": {
+        "y_offset": 2.45,
+        "width": 1.15,
+        "height": 0.11
+      }
     }
   },
   "camera": {
@@ -119,6 +140,76 @@
       "size": [2.8, 1.0, 2.4],
       "color": [0.12, 0.13, 0.15, 1.0],
       "collision": true
+    },
+    {
+      "type": "enemy",
+      "name": "RedMeleePatroller",
+      "position": [-3.8, 0.02, 0.0],
+      "movement": {
+        "mode": "patrol",
+        "move_speed": 1.6,
+        "patrol_min_x": -4.8,
+        "patrol_max_x": -1.2
+      },
+      "attack": {
+        "mode": "melee",
+        "melee_damage": 12.0,
+        "melee_range": 1.35,
+        "melee_cooldown": 1.0,
+        "melee_active_time": 0.22,
+        "melee_offset": 0.72
+      },
+      "visual": {
+        "type": "circle",
+        "radius": 0.65,
+        "color": [0.95, 0.08, 0.08, 1.0]
+      },
+      "collision": {
+        "type": "sphere",
+        "radius": 0.65
+      },
+      "health": {
+        "max": 60.0,
+        "bar": {
+          "y_offset": 1.55,
+          "width": 1.15,
+          "height": 0.11
+        }
+      }
+    },
+    {
+      "type": "enemy",
+      "name": "RedRangeSentinel",
+      "position": [7.0, 0.02, 0.0],
+      "movement": {
+        "mode": "stand"
+      },
+      "attack": {
+        "mode": "ranged",
+        "ranged_damage": 8.0,
+        "ranged_range": 7.5,
+        "ranged_cooldown": 1.8,
+        "projectile_speed": 8.5,
+        "projectile_lifetime": 2.0,
+        "projectile_radius": 0.18
+      },
+      "visual": {
+        "type": "circle",
+        "radius": 0.65,
+        "color": [0.95, 0.08, 0.08, 1.0]
+      },
+      "collision": {
+        "type": "sphere",
+        "radius": 0.65
+      },
+      "health": {
+        "max": 45.0,
+        "bar": {
+          "y_offset": 1.55,
+          "width": 1.05,
+          "height": 0.11
+        }
+      }
     }
   ]
 }

@@ -1,6 +1,10 @@
 extends RefCounted
 class_name LevelBuilder
 
+const DEFAULT_ENEMY_SCRIPT := preload("res://scripts/enemy_controller.gd")
+const HEALTH_BAR_SCRIPT := preload("res://scripts/ui/health_bar_3d.gd")
+const HEALTH_COMPONENT_SCRIPT := preload("res://scripts/components/health_component.gd")
+
 
 func build_from_file(level_path: String, parent: Node3D) -> void:
 	var level_data := _load_level_file(level_path)
@@ -105,6 +109,8 @@ func _add_object(object_data: Dictionary, parent: Node3D) -> void:
 	match object_type:
 		"box":
 			_add_box(object_data, parent)
+		"enemy":
+			_add_enemy(object_data, parent)
 		_:
 			push_warning("Unsupported object type in level data: %s" % object_type)
 
@@ -158,6 +164,7 @@ func _add_player(player_data: Dictionary, parent: Node3D) -> void:
 	_apply_node_properties(player, _as_dictionary(player_data.get("controller", {})))
 	_add_player_visual(_as_dictionary(player_data.get("visual", {})), player)
 	_add_player_collision(_as_dictionary(player_data.get("collision", {})), player)
+	_add_health(_as_dictionary(player_data.get("health", {})), player)
 	parent.add_child(player)
 
 
@@ -222,6 +229,134 @@ func _add_player_collision(collision_data: Dictionary, player: CharacterBody3D) 
 	player.add_child(collision)
 
 
+func _add_enemy(enemy_data: Dictionary, parent: Node3D) -> void:
+	var enemy := CharacterBody3D.new()
+	enemy.name = _read_name(enemy_data, "Enemy")
+	enemy.position = _read_vector3(enemy_data.get("position", []), Vector3.ZERO)
+
+	var script_path := str(enemy_data.get("script", "res://scripts/enemy_controller.gd"))
+	var script_resource := load(script_path)
+	if script_resource is Script:
+		enemy.set_script(script_resource)
+	else:
+		enemy.set_script(DEFAULT_ENEMY_SCRIPT)
+		push_warning("Could not load enemy script from level data, using default: %s" % script_path)
+
+	_apply_node_properties(enemy, _as_dictionary(enemy_data.get("controller", {})))
+	_apply_enemy_behavior_section(enemy, _as_dictionary(enemy_data.get("movement", {})), "movement_mode")
+	_apply_enemy_behavior_section(enemy, _as_dictionary(enemy_data.get("attack", {})), "attack_mode")
+	_add_enemy_visual(_as_dictionary(enemy_data.get("visual", {})), enemy)
+	_add_enemy_collision(_as_dictionary(enemy_data.get("collision", {})), enemy)
+	_add_health(_as_dictionary(enemy_data.get("health", {})), enemy)
+	parent.add_child(enemy)
+
+
+func _apply_enemy_behavior_section(enemy: CharacterBody3D, section_data: Dictionary, mode_property: String) -> void:
+	if section_data.is_empty():
+		return
+
+	if section_data.has("mode"):
+		enemy.set(mode_property, str(section_data.get("mode")))
+
+	for property_name in section_data:
+		if str(property_name) == "mode":
+			continue
+		enemy.set(str(property_name), section_data[property_name])
+
+
+func _add_enemy_visual(visual_data: Dictionary, enemy: CharacterBody3D) -> void:
+	var visual := MeshInstance3D.new()
+	visual.name = str(visual_data.get("name", "Visual"))
+	visual.position = _read_vector3(visual_data.get("position", [0.0, 0.65, 0.0]), Vector3(0.0, 0.65, 0.0))
+
+	var radius := float(visual_data.get("radius", 0.65))
+	var visual_type := str(visual_data.get("type", "sphere")).to_lower()
+
+	match visual_type:
+		"sphere", "circle":
+			var mesh := SphereMesh.new()
+			mesh.radius = radius
+			mesh.height = radius * 2.0
+			mesh.radial_segments = int(visual_data.get("radial_segments", 32))
+			mesh.rings = int(visual_data.get("rings", 16))
+			visual.mesh = mesh
+		"box":
+			var mesh := BoxMesh.new()
+			mesh.size = _read_vector3(visual_data.get("size", [1.0, 1.0, 1.0]), Vector3.ONE)
+			visual.mesh = mesh
+		_:
+			var mesh := SphereMesh.new()
+			mesh.radius = radius
+			mesh.height = radius * 2.0
+			visual.mesh = mesh
+
+	visual.material_override = _make_material(
+		_read_color(visual_data.get("color", [0.95, 0.08, 0.08, 1.0]), Color(0.95, 0.08, 0.08)),
+		float(visual_data.get("roughness", 0.65))
+	)
+	enemy.add_child(visual)
+
+
+func _add_enemy_collision(collision_data: Dictionary, enemy: CharacterBody3D) -> void:
+	var collision := CollisionShape3D.new()
+	collision.name = _read_name(collision_data, "Collision")
+
+	var radius := float(collision_data.get("radius", 0.65))
+	collision.position = _read_vector3(collision_data.get("position", [0.0, radius, 0.0]), Vector3(0.0, radius, 0.0))
+
+	var collision_type := str(collision_data.get("type", "sphere")).to_lower()
+	match collision_type:
+		"sphere", "circle":
+			var shape := SphereShape3D.new()
+			shape.radius = radius
+			collision.shape = shape
+		"capsule":
+			var shape := CapsuleShape3D.new()
+			shape.radius = radius
+			shape.height = float(collision_data.get("height", 1.4))
+			collision.shape = shape
+		"box":
+			var shape := BoxShape3D.new()
+			shape.size = _read_vector3(collision_data.get("size", [1.0, 1.0, 1.0]), Vector3.ONE)
+			collision.shape = shape
+		_:
+			push_warning("Unsupported enemy collision type in level data: %s" % collision_type)
+			return
+
+	enemy.add_child(collision)
+
+
+func _add_health(health_data: Dictionary, entity: Node3D) -> void:
+	if health_data.is_empty():
+		return
+
+	var health = HEALTH_COMPONENT_SCRIPT.new()
+	health.name = _read_name(health_data, "Health")
+
+	var max_health := float(health_data.get("max", health_data.get("max_health", 100.0)))
+	var has_current_health := health_data.has("current") or health_data.has("current_health")
+	var current_health := float(health_data.get("current", health_data.get("current_health", -1.0)))
+	health.configure(max_health, current_health if has_current_health else -1.0)
+	health.remove_owner_on_death = bool(health_data.get("remove_owner_on_death", false))
+	entity.add_child(health)
+
+	if bool(health_data.get("show_bar", true)):
+		_add_health_bar(_as_dictionary(health_data.get("bar", {})), entity, str(health.name))
+
+
+func _add_health_bar(bar_data: Dictionary, entity: Node3D, health_name: String) -> void:
+	var bar = HEALTH_BAR_SCRIPT.new()
+	bar.name = _read_name(bar_data, "HealthBar")
+	bar.health_component_path = NodePath("../" + health_name)
+	bar.width = float(bar_data.get("width", 1.3))
+	bar.height = float(bar_data.get("height", 0.12))
+	bar.depth = float(bar_data.get("depth", 0.04))
+	bar.y_offset = float(bar_data.get("y_offset", 2.1))
+	bar.track_color = _read_color(bar_data.get("track_color", [0.1, 0.08, 0.08, 1.0]), Color(0.1, 0.08, 0.08))
+	bar.fill_color = _read_color(bar_data.get("fill_color", [0.2, 0.95, 0.35, 1.0]), Color(0.2, 0.95, 0.35))
+	entity.add_child(bar)
+
+
 func _add_camera(camera_data: Dictionary, parent: Node3D) -> void:
 	var camera := Camera3D.new()
 	camera.name = _read_name(camera_data, "Camera3D")
@@ -230,7 +365,11 @@ func _add_camera(camera_data: Dictionary, parent: Node3D) -> void:
 	parent.add_child(camera)
 
 	if camera_data.has("look_at"):
-		camera.look_at(_read_vector3(camera_data.get("look_at", []), Vector3.ZERO), Vector3.UP)
+		camera.look_at_from_position(
+			camera.position,
+			_read_vector3(camera_data.get("look_at", []), Vector3.ZERO),
+			Vector3.UP
+		)
 
 
 func _make_material(color: Color, roughness: float) -> StandardMaterial3D:

@@ -26,6 +26,20 @@ The intended split is:
 - `level_builder.gd` converts that data into Godot nodes.
 - Gameplay behavior remains in GDScript components such as player, hazards, checkpoints, and props.
 
+## Reusable Gameplay Components
+
+Prefer reusable child components for gameplay properties that many entity types can share. For example, health lives in `game/scripts/components/health_component.gd` and can be added to players, enemies, breakable props, hazards, or future pickups without reimplementing health logic in each controller.
+
+Controllers should decide behavior, while components should own reusable state and rules. The current combat path follows this pattern:
+
+- `HealthComponent` stores max/current health and emits health, damage, and death signals.
+- `HealthBar3D` reads a health component and renders a small bar above the entity.
+- `CombatUtils` finds health components on targets and applies damage.
+- `SwordHitbox` owns the always-visible equipped sword plus melee collision and damage for sword swings.
+- Player and enemy controllers decide when to activate melee or ranged attacks.
+
+When adding new shared properties such as stamina, shields, status effects, or team/faction data, prefer the same component approach instead of duplicating fields across every entity script.
+
 ## Basic Level Shape
 
 A level file is one JSON object:
@@ -103,6 +117,61 @@ Currently supports `box` objects. A box with `"collision": true` becomes a `Stat
 
 Use boxes for early blockout geometry such as floors, walls, platforms, and simple barriers.
 
+### `enemy` Objects
+
+Enemy objects are placed in the top-level `objects` array with `"type": "enemy"`. The builder creates a `CharacterBody3D`, attaches `enemy_controller.gd` by default, adds a simple red circle/sphere visual, collision, and optional health.
+
+```json
+{
+  "type": "enemy",
+  "name": "RedMeleePatroller",
+  "position": [-3.8, 0.02, 0.0],
+  "movement": {
+    "mode": "patrol",
+    "move_speed": 1.6,
+    "patrol_min_x": -4.8,
+    "patrol_max_x": -1.2
+  },
+  "attack": {
+    "mode": "melee",
+    "melee_damage": 12.0,
+    "melee_range": 1.35,
+    "melee_cooldown": 1.0,
+    "melee_active_time": 0.22,
+    "melee_offset": 0.72
+  },
+  "visual": {
+    "type": "circle",
+    "radius": 0.65,
+    "color": [0.95, 0.08, 0.08, 1.0]
+  },
+  "collision": {
+    "type": "sphere",
+    "radius": 0.65
+  },
+  "health": {
+    "max": 60.0,
+    "bar": {
+      "y_offset": 1.55
+    }
+  }
+}
+```
+
+Supported movement modes in `enemy_controller.gd`:
+
+- `stand`: stay in place.
+- `patrol`: move between `patrol_min_x` and `patrol_max_x`.
+- `chase`: move toward the player when inside `chase_range`.
+
+Supported attack modes:
+
+- `melee`: activates a sword hitbox and damages targets it overlaps.
+- `ranged`: fires a projectile along the gameplay plane. Projectiles spawn a short explosion when they collide with terrain or a valid target.
+- `melee_and_ranged`: uses melee up close and ranged attacks farther away.
+
+The `movement` and `attack` sections accept exported property names from `enemy_controller.gd`, so new enemy knobs can be added to the script and configured in JSON.
+
 ### `player`
 
 Creates a `CharacterBody3D`, attaches the configured script, adds a visual container, loads the GLB visual if available, and adds collision.
@@ -134,16 +203,54 @@ Creates a `CharacterBody3D`, attaches the configured script, adds a visual conta
     "position": [0.0, 1.1, 0.0],
     "radius": 0.32,
     "height": 2.2
+  },
+  "health": {
+    "max": 100.0,
+    "bar": {
+      "y_offset": 2.45
+    }
   }
 }
 ```
 
 The optional `controller` object sets exported variables on the player script. Use it for level-specific movement tuning such as horizontal bounds, gravity, jump strength, and double-jump count.
 
+The player currently supports sword melee attack on `1` and ranged attack on `2`. The sword is visible while idle and swings when attacking; damage is dealt by `SwordHitbox` only when the sword collision overlaps a target body. Attack values such as `melee_attack_damage`, `melee_attack_range`, `melee_attack_active_time`, `ranged_attack_damage`, and projectile speed can also be set in `player.controller`.
+
 Supported player collision types:
 
 - `capsule`
 - `box`
+
+### `health`
+
+Any player or enemy can include a `health` object. The builder adds `HealthComponent` and, by default, a visible `HealthBar3D`.
+
+```json
+"health": {
+  "max": 100.0,
+  "current": 75.0,
+  "show_bar": true,
+  "bar": {
+    "y_offset": 2.1,
+    "width": 1.3,
+    "height": 0.12,
+    "fill_color": [0.2, 0.95, 0.35, 1.0]
+  }
+}
+```
+
+`current` is optional. If omitted, health starts full.
+
+### Weapon Assets
+
+The simple sword is generated from `tools/blender/create_simple_sword.py`. It has a blade, pointed tip, handle/grip, crossguard, round guard ends, and a round pommel.
+
+```powershell
+blender --background --python tools/blender/create_simple_sword.py
+```
+
+The script writes the editable source asset to `assets_src/weapons/simple_sword.blend`, exports the runtime GLB to `assets_export/weapons/simple_sword.glb`, and mirrors it into `game/assets_export/weapons/simple_sword.glb` for Godot imports. Keep changing the Blender script/source asset instead of hand-editing the exported GLB.
 
 ### `camera`
 
